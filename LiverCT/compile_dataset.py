@@ -4,6 +4,8 @@ sys.path.append('..')
 #load necessary modules
 from modules.fileparser import FeatureLabelReader
 from modules.fileparser_unit_test import test_random_images
+from modules.datastats import save_train_stats
+from config import*
 
 def compile_dataset(pathToFiles,fileName):
     myParser = FeatureLabelReader(pathToFiles=pathToFiles)
@@ -16,6 +18,7 @@ def compile_dataset(pathToFiles,fileName):
     #now test compile dataset
     myParser.compile_dataset(imgFiles=images,labelFiles=labels,fileName=fileName)
 
+
 if __name__=="__main__":
 
     #test path in which feature label are seperated
@@ -23,7 +26,7 @@ if __name__=="__main__":
     fileName = "TRAIN_LIVER.h5"
     # compile_dataset(pathToFiles,fileName)
 
-    #save_train_stats(fileName)
-    test_random_images(fileName)
+    save_train_stats(fileName)
+    #test_random_images(fileName)
     #save_label_idx_map(fileName)
 
