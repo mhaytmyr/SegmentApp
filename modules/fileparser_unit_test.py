@@ -122,8 +122,8 @@ def test_random_images(fileName,batchSize=6):
             labelBacth = labels[idx:idx+batchSize]
 
             #plot label and data
-            k = plotter.plot_slice_label(imgBatch,labelBacth)
-            #k = processor_unit_tester(imgBatch,processor=processor,plotter=plotter)
+            #k = plotter.plot_slice_label(imgBatch,labelBacth)
+            k = processor_unit_tester(imgBatch,processor=processor,plotter=plotter)
 
             if k==ord("d"): idx+=batchSize
             elif k==ord("a"): idx-=batchSize
