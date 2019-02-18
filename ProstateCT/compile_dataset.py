@@ -1,11 +1,12 @@
 #add parent directory to path
-import sys
+import sys 
 sys.path.append('..')
 #load necessary modules
+from modules import *
 from modules.fileparser import FeatureLabelReader
 from modules.fileparser_unit_test import test_random_images
 from modules.datastats import save_train_stats
-from config import*
+
 
 def prostate_struct(roiName):
     #standarize name
@@ -36,7 +37,7 @@ if __name__=="__main__":
     #fileName = "TEST_PROSTATE.h5"
     # compile_dataset(pathToFiles,fileName)
 
-    save_train_stats(fileName)
-    #test_random_images(fileName,batchSize=2)
+    #save_train_stats(fileName)
+    test_random_images(fileName,batchSize=2)
     #save_label_idx_map(fileName)
 

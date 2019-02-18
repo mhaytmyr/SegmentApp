@@ -1,9 +1,7 @@
-import time, numpy as np
-import h5py, dask.array as da
-import dask
-
 from modules.processor import ImageProcessor
-
+from config import *
+from modules import *
+#pdb.set_trace()
 
 def save_train_stats(trainFileName):
 
@@ -52,7 +50,7 @@ def save_label_idx_map(trainFileName):
         label_idx_map[idx] = da.unique(X).compute(); 
         print("Finished label {0} in {1:.3f} s".format(idx,time.time()-start));    
 
-    with h5py.File(fileName.replace(".h5","_IDX_MAP.h5"),"w") as newFile:
+    with h5py.File(trainFileName.replace(".h5","_IDX_MAP.h5"),"w") as newFile:
         for idx in range(1,NUMCLASSES):
             newFile.create_dataset(str(idx), data=label_idx_map[idx], dtype=np.int16);
     
