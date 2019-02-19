@@ -1,11 +1,12 @@
 from modules.processor import ImageProcessor
-from config import *
 from modules import *
-#pdb.set_trace()
+global config1, config2, config3
+
+pdb.set_trace()
 
 def save_train_stats(trainFileName):
 
-    fp = h5py.File(trainFileName, "r");
+    fp = h5py.File(trainFileName, "r")
     data = fp["features"]
     data_crop = np.zeros((data.shape[0],W,H))
     batch = 32
