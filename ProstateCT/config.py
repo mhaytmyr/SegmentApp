@@ -1,6 +1,5 @@
 ########################
 #### CONFIG #####
-global config1, config2, config3
 
 config1={
     'FILTER1':16,#24

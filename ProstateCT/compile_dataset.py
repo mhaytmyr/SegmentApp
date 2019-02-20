@@ -1,11 +1,14 @@
+from config import *
+
 #add parent directory to path
 import sys 
 sys.path.append('..')
 #load necessary modules
 from modules import *
-import pdb; pdb.set_trace()
 
-from config import *
+pdb.set_trace()
+
+
 from modules.fileparser import FeatureLabelReader
 from modules.fileparser_unit_test import test_random_images
 from modules.datastats import save_train_stats
