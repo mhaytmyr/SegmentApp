@@ -1,6 +1,5 @@
 from modules.processor import ImageProcessor
 from modules import *
-global config1, config2, config3
 
 pdb.set_trace()
 
