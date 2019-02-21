@@ -13,7 +13,7 @@ config1={
     'NUMEPOCHS':50,
     'NUMCLASSES':5,
     'L2PENALTY':0.0001,
-    'LEARNRATE':0.0001, #0.0001
+    'LEARNRATE':0.0001, 
     'TRAINSIZE':6396,
     'VALSIZE':1024,
     'H':384,
