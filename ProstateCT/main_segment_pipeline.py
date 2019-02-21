@@ -1,11 +1,23 @@
 #import everything
-import os, sys, glob
-import numpy as np
+# import os, sys, glob
+# import numpy as np
 
-from helper_data_generator import *
-from helper_to_train import *
-from helper_to_plot import Plotter
-from helper_to_submit import SubmitPrediction
+#load current config file
+from config import *
+
+#add parent directory to path
+import sys 
+sys.path.append('..')
+#load necessary modules
+from modules import *
+
+
+#module specific imports
+from keras.models import model_from_json
+from modules.data_generator import DataGenerator
+#from helper_to_train import *
+from modules.plotter import Plotter
+#from helper_to_submit import SubmitPrediction
 
 
 def test_generator(myGen,dataGenerator):
@@ -40,7 +52,7 @@ def plot_prediction(valGen,model,dataGenerator):
     #create instance of Plotter class
     plotter = Plotter()
 
-    while imgNum<VALSIZE:
+    while imgNum<config1["VALSIZE"]:
         imgBatch, label = next(valGen)
         labelBatch = label["organ_output"]
 
@@ -62,64 +74,6 @@ def plot_prediction(valGen,model,dataGenerator):
         #ax = overlay_contours_plot(pred_organ,true_organ,image,imgNum,ax); 
         #overlay_contours_save(pred_organ,true_organ,image,imgNum);         
         imgNum+=1
-
-import matplotlib.pyplot as plt
-def overlay_contours_plot(pred,truth,image,imgNum,ax=None):
-    colors = ('g','r','c','m','b','y');
-
-    if ax is None:
-        fig, axes = plt.subplots(ncols=2, figsize=(15,8), gridspec_kw = {'wspace':0, 'hspace':0,'left':0,'right':1.0,'top':0.95,'bottom':0.});
-        ax = axes.ravel();
-
-    ax[0].set_title("True contours");
-    ax[0].imshow(image, cmap="gray");
-    
-    for idx in [1,2,3,4,5,6]: 
-        ax[0].contour((truth==idx).astype('float32'), colors=colors[idx-1], normlinestyles='solid', linewidths=1);
-
-    ax[0].axis('off');
-
-    ax[1].set_title("Predicted contours");    
-    ax[1].imshow(image, cmap="gray");
-    for idx in [1,2,3,4,5,6]:
-        ax[1].contour((pred==idx).astype('float32'), colors=colors[idx-1], linestyles='solid', linewidths=1);
-    ax[1].axis('off');    
-
-    #plt.tight_layout();
-    plt.show(0);
-    plt.pause(1);
-    
-    ax[1].clear(); ax[0].clear();        
-
-    return ax
-
-def overlay_contours_save(pred,truth,image,imgNum):
-    
-
-    fig = plt.figure(figsize=(8, 6));
-    colors = ('g','r','c','m','b','y');
-
-    
-    sub1 = fig.add_subplot(121)
-    sub1.imshow(image, cmap="gray");
-    
-    for idx in [1,2,3,4,5,6]: 
-        sub1.contour((truth==idx).astype('float32'), colors=colors[idx-1], normlinestyles='solid', linewidths=0.7);
-
-    sub1.axis('off');
-
-    sub2 = fig.add_subplot(122)
-    sub2.imshow(image, cmap="gray");
-    for idx in [1,2,3,4,5,6]:
-        sub2.contour((pred==idx).astype('float32'), colors=colors[idx-1], linestyles='solid', linewidths=0.7);
-    sub2.axis('off');
-
-    plt.tight_layout()
-    fig.subplots_adjust(bottom=0.0, left=0.0, top = 1, right=1, wspace=0, hspace=0)
-    plt.pause(1);
-
-    plt.savefig('./figures/val_seg_'+str(imgNum)+".jpg", dpi=400, bbox_inches='tight');
-    plt.close("all");
 
 def get_normalization_param(trainFile):
     with h5py.File(trainFile,"r") as fp:
@@ -165,7 +119,6 @@ def trachea_dice():
 def aorta_dice():
     return metric_decorator(4,0.5,0.5)
 
-import time    
 def report_validation_results(testFile,model,dataGenerator,batchSize=1024,steps=int(1024/128)+1):
 
     #create data generator
@@ -191,7 +144,17 @@ def report_validation_results(testFile,model,dataGenerator,batchSize=1024,steps=
     print("Time took to predict {0} slices is {1} seconds".format(batchSize,end-start));
     print(scores)
 
-import pickle
+def load_json_model(modelName):
+    filePath = './checkpoint/'+modelName+".json";
+    fileWeight = './checkpoint/'+modelName+"_weights.h5"
+
+    with open(filePath,'r') as fp:
+        json_data = fp.read();
+    model = model_from_json(json_data)
+    model.load_weights(fileWeight)
+
+    return model
+
 if __name__=='__main__':
     
     arg = sys.argv[1]
@@ -203,8 +166,8 @@ if __name__=='__main__':
 
    
     #define train file name
-    trainFile = "TRAIN.h5";
-    testFile = "TEST.h5";
+    trainFile = "TRAIN_PROSTATE.h5"
+    testFile = "TEST_PROSTATE.h5"
 
     #now get normalization parameters
     imgMean, imgStd = get_normalization_param(trainFile.replace(".h5","_STAT.h5"))
@@ -218,21 +181,21 @@ if __name__=='__main__':
     #        )
     #create train data generator
     trainGen = dataGenerator.generate_data(trainFile,
-                            batchSize=BATCHSIZE,augment=True,shuffle=True)
+                            batchSize=config1["BATCHSIZE"],augment=True,shuffle=True)
     #create test data generator
     valGen = dataGenerator.generate_data(testFile,
                            #batchSize=2,
-                           batchSize=BATCHSIZE,
+                           batchSize=config1["BATCHSIZE"],
                            augment=False,shuffle=False)
      
 
     arg = sys.argv[1]
     if arg=='train':
-        hist = train_model(trainGen, valGen, STEPPEREPOCHS, NUMEPOCHS, VALSTEPS);
+        hist = train_model(trainGen, valGen, config2["STEPPEREPOCHS"], config1["NUMEPOCHS"], config2["VALSTEPS"]);
 
-        with open('./log/'+modelName+".log", 'wb') as fp:
+        with open('./log/'+config1["modelName"]+".log", 'wb') as fp:
             pickle.dump(hist.history, fp)
-        history = hist.history;
+        history = hist.history
 
         fig, axes = plt.subplots(ncols=2,nrows=1)
         ax = axes.ravel();
