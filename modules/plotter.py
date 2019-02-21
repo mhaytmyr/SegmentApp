@@ -1,6 +1,8 @@
-import numpy as np
-import cv2,sys
-import matplotlib.pyplot as plt
+# import numpy as np
+# import cv2,sys
+# import matplotlib.pyplot as plt
+
+from modules import *
 
 class Plotter:
     def __init__(self):
@@ -93,3 +95,66 @@ class Plotter:
         k = cv2.waitKey(0)
         return k
 
+    def overlay_contours_plot(self,pred,truth,image,imgNum,ax=None):
+        '''
+        Method to overlay contours
+        TODO: fix
+        '''
+        colors = ('g','r','c','m','b','y');
+
+        if ax is None:
+            fig, axes = plt.subplots(ncols=2, figsize=(15,8), gridspec_kw = {'wspace':0, 'hspace':0,'left':0,'right':1.0,'top':0.95,'bottom':0.});
+            ax = axes.ravel();
+
+        ax[0].set_title("True contours");
+        ax[0].imshow(image, cmap="gray");
+        
+        for idx in [1,2,3,4,5,6]: 
+            ax[0].contour((truth==idx).astype('float32'), colors=colors[idx-1], normlinestyles='solid', linewidths=1);
+
+        ax[0].axis('off');
+
+        ax[1].set_title("Predicted contours");    
+        ax[1].imshow(image, cmap="gray");
+        for idx in [1,2,3,4,5,6]:
+            ax[1].contour((pred==idx).astype('float32'), colors=colors[idx-1], linestyles='solid', linewidths=1);
+        ax[1].axis('off');    
+
+        #plt.tight_layout();
+        plt.show(0);
+        plt.pause(1);
+        
+        ax[1].clear(); ax[0].clear();        
+
+        return ax
+
+    def overlay_contours_save(pred,truth,image,imgNum):
+        '''
+        Method to overlay contours and save them to dcm
+        TODO: fix
+        '''    
+
+        fig = plt.figure(figsize=(8, 6));
+        colors = ('g','r','c','m','b','y');
+
+        
+        sub1 = fig.add_subplot(121)
+        sub1.imshow(image, cmap="gray");
+        
+        for idx in [1,2,3,4,5,6]: 
+            sub1.contour((truth==idx).astype('float32'), colors=colors[idx-1], normlinestyles='solid', linewidths=0.7);
+
+        sub1.axis('off');
+
+        sub2 = fig.add_subplot(122)
+        sub2.imshow(image, cmap="gray");
+        for idx in [1,2,3,4,5,6]:
+            sub2.contour((pred==idx).astype('float32'), colors=colors[idx-1], linestyles='solid', linewidths=0.7);
+        sub2.axis('off');
+
+        plt.tight_layout()
+        fig.subplots_adjust(bottom=0.0, left=0.0, top = 1, right=1, wspace=0, hspace=0)
+        plt.pause(1);
+
+        plt.savefig('./figures/val_seg_'+str(imgNum)+".jpg", dpi=400, bbox_inches='tight');
+        plt.close("all");

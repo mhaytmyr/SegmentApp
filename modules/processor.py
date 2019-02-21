@@ -1,11 +1,13 @@
-import sys, numpy as np
-import nibabel as nib
-import pydicom, cv2
+# import sys, numpy as np
+# import nibabel as nib
+# import pydicom, cv2
+
+#package specific imports
+from modules import *
+
+#module specific imports
 from collections import defaultdict
 from keras.utils.np_utils import to_categorical
-
-from modules.config import *
-
 from modules.normalizer import Normalizer
 from modules.cropper import Cropper
 
@@ -54,10 +56,10 @@ class ImageProcessor(Normalizer,Cropper):
             return array[np.newaxis,...,np.newaxis]
         elif len(shape)==3:
             #num channel exist, batch size missing
-            if (np.prod(shape[1:])==H0*W0) or (np.prod(shape[1:])==H*W):
+            if (np.prod(shape[1:])==config1["H0"]*config1["W0"]) or (np.prod(shape[1:])==config1["H"]*config1["W"]):
                 return array[...,np.newaxis]
             #num batches exist but, channel missing
-            elif (np.prod(shape[:-1])==H0*W0) or (np.prod(shape[:-1])==H*W):        
+            elif (np.prod(shape[:-1])==config1["H0"]*config1["W0"]) or (np.prod(shape[:-1])==config1["H"]*config1["W"]):        
                 return array[np.newaxis,...]
             else:
                 sys.exit("preprocessing.img_to_tensor method can't convert ",shape," to 4D tensor");
@@ -95,7 +97,8 @@ class ImageProcessor(Normalizer,Cropper):
         #max = labelZoom.max(axis=(1,2),keepdims=True)
         #max[max==0] = 1
         #labelZoomNorm = (labelZoom-min)/(max-min)
-        labelZoomCat = to_categorical((labelZoom).argmax(axis=-1),NUMCLASSES).reshape((-1,W,H,NUMCLASSES))
+        labelZoomCat = to_categorical((labelZoom).argmax(axis=-1),
+                        config1["NUMCLASSES"]).reshape((-1,config1["W"],config1["H"],config1["NUMCLASSES"]))
         #pdb.set_trace()
 
         return labelZoomCat

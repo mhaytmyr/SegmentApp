@@ -1,13 +1,13 @@
-from modules.processor import ImageProcessor
 from modules import *
+from modules.processor import ImageProcessor
 
-pdb.set_trace()
+#pdb.set_trace()
 
 def save_train_stats(trainFileName):
 
     fp = h5py.File(trainFileName, "r")
     data = fp["features"]
-    data_crop = np.zeros((data.shape[0],W,H))
+    data_crop = np.zeros((data.shape[0],config1["W"],config1["H"]))
     batch = 32
 
     #initialize ImageProcessor class
@@ -22,7 +22,7 @@ def save_train_stats(trainFileName):
             print("Processing batch ",idx)
     print("Completed cropping!")
     #create dask array for further processing
-    data_da = da.from_array(data_crop,chunks=(4,W,H)) #parallelize
+    data_da = da.from_array(data_crop,chunks=(4,config1["W"],config1["H"])) #parallelize
 
     #Mask out zero measurements, air and recompute mean and variance
     nonZero = da.ma.masked_equal(data_da,0)
@@ -44,13 +44,13 @@ def save_label_idx_map(trainFileName):
     
     label_idx_map = {}    
     #count number of occurences for each label
-    for idx in range(1,NUMCLASSES):
+    for idx in range(1,config1["NUMCLASSES"]):
         start = time.time()
         X,Y,Z = da.where(labels_da==idx)
         label_idx_map[idx] = da.unique(X).compute(); 
         print("Finished label {0} in {1:.3f} s".format(idx,time.time()-start));    
 
     with h5py.File(trainFileName.replace(".h5","_IDX_MAP.h5"),"w") as newFile:
-        for idx in range(1,NUMCLASSES):
+        for idx in range(1,config1["NUMCLASSES"]):
             newFile.create_dataset(str(idx), data=label_idx_map[idx], dtype=np.int16);
     
