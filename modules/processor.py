@@ -7,7 +7,7 @@ from modules import *
 
 #module specific imports
 from collections import defaultdict
-from keras.utils.np_utils import to_categorical
+# from keras.utils.np_utils import to_categorical
 from modules.normalizer import Normalizer
 from modules.cropper import Cropper
 

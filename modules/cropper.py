@@ -1,9 +1,13 @@
 
-import cv2,numpy as np
-from skimage.transform import resize
-from keras.utils.np_utils import to_categorical
+#package specific imports
+from modules import *
 
-from modules.config import *
+# import cv2,numpy as np
+# from keras.utils.np_utils import to_categorical
+
+#module specific imports
+from skimage.transform import resize
+
 
 class Cropper:
     def __init__(self):
@@ -70,8 +74,8 @@ class Cropper:
         input: 2D array
         output: 2D array
         '''
-        rowPad = (row[0],H0-row[1])
-        colPad = (col[0],W0-col[1])
+        rowPad = (row[0],config1["H0"]-row[1])
+        colPad = (col[0],config1["W0"]-col[1])
         padImg = np.pad(imgInput,pad_width=(rowPad,colPad),mode='constant'); 
         return padImg
 
@@ -82,7 +86,7 @@ class Cropper:
         output: ndarray
         '''
         n = len(imgInput)
-        unCropImg = np.zeros((n,H0,W0))
+        unCropImg = np.zeros((n,config1["H0"],config1["W0"]))
         for idx in range(n):
             col = self.cols[idx]
             row = self.rows[idx]
@@ -90,7 +94,7 @@ class Cropper:
             
         return unCropImg
 
-    def zoom_image(self,imgInput,height=W,width=H):
+    def zoom_image(self,imgInput,height=config1["W"],width=config1["H"]):
         '''
         Method to zoom image, using Lancsoz interpolation over 8x8 pixel neighborhood. default: liner was not good
         input: 2d array
@@ -131,7 +135,7 @@ class Cropper:
             col = self.cols[idx]
             row = self.rows[idx]
             currLabel = np.zeros((row[1]-row[0],col[1]-col[0],zoomLabel.shape[-1]))
-            for label in range(NUMCLASSES):
+            for label in range(config1["NUMCLASSES"]):
                 #currLabel = cv2.resize(zoomLabel[idx],(col[1]-col[0],row[1]-row[0]),interpolation=cv2.INTER_NEAREST)
                 tmp = cv2.resize(zoomLabel[idx,...,label],(col[1]-col[0],row[1]-row[0]),interpolation=cv2.INTER_LANCZOS4)
                 currLabel[...,label] = tmp
@@ -145,18 +149,18 @@ class Cropper:
         Input: list()
         Output: 4D array
         '''
-        unCropLabel = np.zeros((len(cropLabel),H0,W0,NUMCLASSES))
+        unCropLabel = np.zeros((len(cropLabel),config1["H0"],config1["W0"],config1["NUMCLASSES"]))
         for idx in range(len(cropLabel)):
             col = self.cols[idx]
             row = self.rows[idx]
-            currLabel = np.zeros((H0,W0,NUMCLASSES))
-            for label in range(NUMCLASSES):
+            currLabel = np.zeros((config1["H0"],config1["W0"],config1["NUMCLASSES"]))
+            for label in range(config1["NUMCLASSES"]):
                 tmp = self.uncrop_image(row,col,cropLabel[idx][...,label])
                 currLabel[...,label] = tmp
             unCropLabel[idx] = currLabel
         return unCropLabel
 
-    def zoom_label(self,labelInput,height=W,width=H):
+    def zoom_label(self,labelInput,height=config1["W"],width=config1["H"]):
         '''
         Method to zoom batch of labels. 
         input: can be list or ndarray
@@ -169,7 +173,7 @@ class Cropper:
         else:
             sys.exit(type(self).__name__+'.zoom_label() accepts list or nd array'+type(labelInput)+' provided');
 
-        zoomedLabel = np.zeros((n,height,width,NUMCLASSES))
+        zoomedLabel = np.zeros((n,height,width,config1["NUMCLASSES"]))
         #cropImg is list so, need to iterate 
         for idx in range(n):
             #col = self.cols[idx]
@@ -177,14 +181,14 @@ class Cropper:
             row,col = labelInput[idx].shape
 
             #convert each image to categorical
-            labelOneHot = to_categorical(labelInput[idx],num_classes=NUMCLASSES).reshape((row,col,NUMCLASSES))
+            labelOneHot = to_categorical(labelInput[idx],num_classes=config1["NUMCLASSES"]).reshape((row,col,config1["NUMCLASSES"]))
             #labelOneHot = to_categorical(labelInput[idx],num_classes=NUMCLASSES).reshape((row[1]-row[0],col[1]-col[0],NUMCLASSES))
-            for label in range(NUMCLASSES):
+            for label in range(config1["NUMCLASSES"]):
                 zoomedLabel[idx,...,label] = cv2.resize(labelOneHot[...,label],(width,height),interpolation=cv2.INTER_LANCZOS4)
 
         return zoomedLabel
 
-    def zoom(self,imgInput,height=W,width=H):
+    def zoom(self,imgInput,height=config1["W"],width=config1["H"]):
         '''
         Method to zoom batch of images
         input: can be list or ndarray
@@ -233,7 +237,7 @@ def body_bounding_box(img):
     # col_center = np.int((cols*col_mean).sum()//col_mean.sum())
 
     #create label img
-    label = np.zeros((W0,H0),dtype=np.uint8)
+    label = np.zeros((config1["W0"],config1["H0"]),dtype=np.uint8)
     body = label.copy()
 
     #first binarize image
@@ -259,7 +263,7 @@ def body_bounding_box(img):
     #return crop positions
     return (ymin,ymax),(xmin,xmax)
 
-def crop_image_roi(img,rowMin=ROW,rowMax=ROW+W,colMin=COL,colMax=COL+H):
+def crop_image_roi(img,rowMin,rowMax,colMin,colMax):
     '''
     Method to crop center of image using pre-defined regions. Not using it anymore
     Input: can be 2D, 3D (may have bug, assumes [N,H,W]) or 4D image
