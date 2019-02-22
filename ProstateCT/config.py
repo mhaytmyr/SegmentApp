@@ -11,11 +11,11 @@ config1={
     'FILTER7':1024,
     'BATCHSIZE':8,
     'NUMEPOCHS':50,
-    'NUMCLASSES':5,
+    'NUMCLASSES':6,
     'L2PENALTY':0.0001,
     'LEARNRATE':0.0001, 
-    'TRAINSIZE':6396,
-    'VALSIZE':1024,
+    'TRAINSIZE':1021,
+    'VALSIZE':158,
     'H':384,
     'W':256,
     'C':1,
@@ -45,7 +45,8 @@ config2 = {
 
 config3 = {
     'DECAYRATE':1/(config2['STEPPEREPOCHS']*config1['NUMEPOCHS']),
-    #CLASSWEIGHTS:{0: 1.0, 1: 2148, 2: 128, 3: 2864, 4: 525} #calculated globally (total_for_all_categories/total_for_category)
-    'CLASSWEIGHTS':[ 1., 7.67229246,  4.85203026,  7.95997453,  6.26339826], #logarithm of above numbers
+    #TODO: FIX WEIGHTS
+    #'CLASSWEIGHTS':{0: 1.0, 1: 173, 2: 935, 3: 165, 4: 842, 5: 2414} #calculated globally (total_for_all_categories/total_for_category)
+    'CLASSWEIGHTS':[0.005, 0.025, 0.6, 3.2, 0.6, 3.0] #logarithm of above numbers
 }
 
