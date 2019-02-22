@@ -184,8 +184,8 @@ if __name__=='__main__':
                             batchSize=config1["BATCHSIZE"],augment=True,shuffle=True)
     #create test data generator
     valGen = dataGenerator.generate_data(testFile,
-                           #batchSize=2,
-                           batchSize=config1["BATCHSIZE"],
+                           batchSize=2,
+                           #batchSize=config1["BATCHSIZE"],
                            augment=False,shuffle=False)
      
 
