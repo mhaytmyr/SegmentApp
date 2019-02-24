@@ -14,7 +14,6 @@ from scipy.ndimage.filters import gaussian_filter
 from scipy.ndimage.interpolation import map_coordinates
 
 from modules.processor import ImageProcessor
-#from helper_to_processing import *
 
 
 class DataGenerator(ImageProcessor):
@@ -139,17 +138,17 @@ class DataGenerator(ImageProcessor):
         '''
 
         #create place holder for image and label batch
-        img_batch = np.zeros((batchSize,H0,W0),dtype=np.float32);
-        label_batch = np.zeros((batchSize,H0,W0),dtype=np.float32);
+        img_batch = np.zeros((batchSize,config1["H0"],config1["W0"]),dtype=np.float32)
+        label_batch = np.zeros((batchSize,config1["H0"],config1["W0"]),dtype=np.float32)
     
         #get pointer to features and labels
-        hdfFile = h5py.File(hdfFileName,"r");
-        features = hdfFile["features"];        
-        labels = hdfFile["labels"];
+        hdfFile = h5py.File(hdfFileName,"r")
+        features = hdfFile["features"]        
+        labels = hdfFile["labels"]
 
         #create dask array for efficienct access    
-        daskFeatures = dask.array.from_array(features,chunks=(4,H0,W0));
-        daskLabels = dask.array.from_array(labels,chunks=(4,H0,W0));
+        daskFeatures = dask.array.from_array(features,chunks=(4,config1["H0"],config1["W0"]))
+        daskLabels = dask.array.from_array(labels,chunks=(4,config1["H0"],config1["W0"]))
 
         #create queue for keys
         label_queue = Queue()
@@ -193,7 +192,7 @@ class DataGenerator(ImageProcessor):
 
             #yield data 
             #yield (feature[...,np.newaxis], {'organ_output':organ})
-            yield (self.img_to_tensor(feature),{'organ_output':self.img_to_tensor(organ)});
+            yield (self.img_to_tensor(feature),{'organ_output':self.img_to_tensor(organ)})
 
 # Define function to draw a grid
 def draw_grid(im, grid_size):

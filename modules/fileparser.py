@@ -1,10 +1,9 @@
-import os, sys, glob
-import h5py, numpy as np
-import pydicom
-import nibabel as nib
+#package specific imports
+from modules import *
+
+#module specific imports
 from PIL import Image
 from skimage.draw import polygon
-
 from modules.processor import ImageProcessor
 
 
@@ -60,25 +59,55 @@ class FeatureLabelReader:
         #return directory names
         return sorted(files)
 
-    def parse_file(self,imgBatch):
+    def parse_images(self,imgBatch):
         '''
         Method to read file and return numpy array
         input: list of files
         output: ndarray
         '''
+        N = imgBatch.__len__()
         #check file extension
-        outBatch = np.zeros((len(imgBatch),512,512))
-        for idx in range(imgBatch.__len__()):
+        outBatch = np.zeros((N,512,512))
+        for idx in range(N):
             file = imgBatch[idx]
+            print(file)
             #check file extension
             if 'dcm' in file:
                 img = pydicom.read_file(file)
             elif 'nii' in file:
+                #TODO: Fix this part, 
                 img = nib.load(file)
+                return self.processor.standardize_img(img)
             else:
                 img = np.array(Image.open(file))
-            
+
             outBatch[idx] = self.processor.standardize_img(img)
+        
+        return outBatch
+
+    def parse_labels(self,imgBatch):
+        '''
+        Method to read file and return numpy array
+        input: list of files
+        output: ndarray
+        '''
+        N = imgBatch.__len__()
+        #check file extension
+        outBatch = np.zeros((N,512,512))
+        for idx in range(N):
+            file = imgBatch[idx]
+            print(file)
+            #check file extension
+            if 'dcm' in file:
+                img = pydicom.read_file(file)
+            elif 'nii' in file:
+                #TODO: Fix this part, 
+                img = nib.load(file)
+                return self.processor.standardize_label(img)
+            else:
+                img = np.array(Image.open(file))
+
+            outBatch[idx] = self.processor.standardize_label(img)
         
         return outBatch
 
@@ -95,8 +124,9 @@ class FeatureLabelReader:
             N = len(imgFiles)
 
             for idx in range(0,N,batchSize):
-                features = self.parse_file(imgFiles[idx:idx+batchSize])
-                labels = self.parse_file(labelFiles[idx:idx+batchSize])
+                features = self.parse_images(imgFiles[idx:idx+batchSize])
+                labels = self.parse_labels(labelFiles[idx:idx+batchSize])
+                print(np.unique(labels))
                 print("Saving batch ",idx)
                 self.save_image_mask(features, labels, fileName)
 
