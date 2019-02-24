@@ -1,7 +1,3 @@
-# import sys, numpy as np
-# import nibabel as nib
-# import pydicom, cv2
-
 #package specific imports
 from modules import *
 

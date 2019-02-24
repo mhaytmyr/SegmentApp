@@ -1,9 +1,5 @@
-
 #package specific imports
 from modules import *
-
-# import cv2,numpy as np
-# from keras.utils.np_utils import to_categorical
 
 #module specific imports
 from skimage.transform import resize
