@@ -251,8 +251,9 @@ class FeatureLabelReader:
                         labelToImgMap[currLabel].append(img)
 
         return labelToImgMap
-                    
-    def save_image_mask(self, features, labels, fileName):
+
+    @staticmethod
+    def save_image_mask(features, labels, fileName):
 
         #create a hdf file to store organ
         if os.path.exists(fileName): #open file to modify
