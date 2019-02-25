@@ -121,7 +121,7 @@ class Cropper:
             unZoomImg.append(tmp)
         return unZoomImg 
 
-    def unzoom_label(self,zoomLabel):
+    def unzoom_label(self,zoomLabel,numClasses=config1["NUMCLASSES"]):
         '''
         Method to unzoom labels. Input is 4D array, so I need to zoom each label 
         separately. Then combine them. Can we optimize thi method???
@@ -130,33 +130,34 @@ class Cropper:
         for idx in range(zoomLabel.shape[0]):
             col = self.cols[idx]
             row = self.rows[idx]
+            
             currLabel = np.zeros((row[1]-row[0],col[1]-col[0],zoomLabel.shape[-1]))
-            for label in range(config1["NUMCLASSES"]):
+            for label in range(numClasses):
                 #currLabel = cv2.resize(zoomLabel[idx],(col[1]-col[0],row[1]-row[0]),interpolation=cv2.INTER_NEAREST)
                 tmp = cv2.resize(zoomLabel[idx,...,label],(col[1]-col[0],row[1]-row[0]),interpolation=cv2.INTER_LANCZOS4)
                 currLabel[...,label] = tmp
             unZoomLabel.append(currLabel)
         return unZoomLabel
 
-    def uncrop_label(self,cropLabel):
+    def uncrop_label(self,cropLabel,numClasses=config1["NUMCLASSES"]):
         '''
         Method to padd labels. Input is 4D array, so I need to pad each label 
         separately. Then combine them. Can we optimize thi method???
         Input: list()
         Output: 4D array
         '''
-        unCropLabel = np.zeros((len(cropLabel),config1["H0"],config1["W0"],config1["NUMCLASSES"]))
+        unCropLabel = np.zeros((len(cropLabel),config1["H0"],config1["W0"],numClasses))
         for idx in range(len(cropLabel)):
             col = self.cols[idx]
             row = self.rows[idx]
-            currLabel = np.zeros((config1["H0"],config1["W0"],config1["NUMCLASSES"]))
-            for label in range(config1["NUMCLASSES"]):
+            currLabel = np.zeros((config1["H0"],config1["W0"],numClasses))
+            for label in range(numClasses):
                 tmp = self.uncrop_image(row,col,cropLabel[idx][...,label])
                 currLabel[...,label] = tmp
             unCropLabel[idx] = currLabel
         return unCropLabel
 
-    def zoom_label(self,labelInput,height=config1["W"],width=config1["H"]):
+    def zoom_label(self,labelInput,height=config1["W"],width=config1["H"],numClasses=config1["NUMCLASSES"]):
         '''
         Method to zoom batch of labels. 
         input: can be list or ndarray
@@ -169,7 +170,7 @@ class Cropper:
         else:
             sys.exit(type(self).__name__+'.zoom_label() accepts list or nd array'+type(labelInput)+' provided');
 
-        zoomedLabel = np.zeros((n,height,width,config1["NUMCLASSES"]))
+        zoomedLabel = np.zeros((n,height,width,numClasses))
         #cropImg is list so, need to iterate 
         for idx in range(n):
             #col = self.cols[idx]
@@ -177,9 +178,8 @@ class Cropper:
             row,col = labelInput[idx].shape
 
             #convert each image to categorical
-            labelOneHot = to_categorical(labelInput[idx],num_classes=config1["NUMCLASSES"]).reshape((row,col,config1["NUMCLASSES"]))
-            #labelOneHot = to_categorical(labelInput[idx],num_classes=NUMCLASSES).reshape((row[1]-row[0],col[1]-col[0],NUMCLASSES))
-            for label in range(config1["NUMCLASSES"]):
+            labelOneHot = to_categorical(labelInput[idx],num_classes=numClasses).reshape((row,col,numClasses))
+            for label in range(numClasses):
                 zoomedLabel[idx,...,label] = cv2.resize(labelOneHot[...,label],(width,height),interpolation=cv2.INTER_LANCZOS4)
 
         return zoomedLabel
