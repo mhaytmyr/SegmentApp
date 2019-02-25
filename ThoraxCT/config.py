@@ -11,7 +11,7 @@ config1={
     'FILTER7':1024,
     'BATCHSIZE':8,
     'NUMEPOCHS':50,
-    'NUMCLASSES':6,
+    'NUMCLASSES': 6, #5
     'L2PENALTY':0.0001,
     'LEARNRATE':0.0001, 
     'TRAINSIZE':1021,
@@ -22,20 +22,11 @@ config1={
     'H0':512,
     'W0':512,
     'C0':1,
-    #using default model with loss categorical-loss function, no data stratifying
-    #modelName:"1x256x384_Base_3D16_3D32_3D64_3D128_3D256_3D512_1C1024"
-
-    #training with weighted loss function
-    #modelName:"1x256x384_WeightedLoss_3D16_3D32_3D64_3D128_3D256_3D512_1C1024"
-
-    #training by augmenting data
-    #modelName:"1x256x384_Augmented_3D16_3D32_3D64_3D128_3D256_3D512_1C1024"
-
+    'modelName':'1x256x384_MultiClassBatchWeight_3D16_3D32_3D64_3D128_3D256_3D512_1C1024',
     #same model as before but multiclass loss function
     #modelName:"1x256x384_MultiClass_3D16_3D32_3D64_3D128_3D256_3D512_1C1024"
-
     #same model as before but multiclass loss function
-    'modelName':"1x256x384_MultiClassWeighetd_3D16_3D32_3D64_3D128_3D256_3D512_1C1024",
+    #'modelName':"1x256x384_MultiClassWeighetd_3D16_3D32_3D64_3D128_3D256_3D512_1C1024",
 }
 
 config2 = {

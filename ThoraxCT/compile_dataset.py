@@ -77,18 +77,18 @@ if __name__=="__main__":
     #test path in which feature label are seperated
     pathToFiles = "../../SegmentationDataSets/SegTHOR/train/"
     fileName = "TRAIN_SegTHOR.h5"
-    #pathToFiles = "../../SegmentationDataSets/SegTHOR/test/"
-    fileName = "TEST_SegTHOR.h5"
+    # pathToFiles = "../../SegmentationDataSets/SegTHOR/test/"
+    # fileName = "TEST_SegTHOR.h5"
     compile_dataset(pathToFiles,fileName)
 
     #LCTSC files
     #test path in which feature label are seperated
-    pathToFiles = "../../SegmentationDataSets/LCTSC/"
+    # pathToFiles = "../../SegmentationDataSets/LCTSC/"
     # fileName = "TRAIN_LCTSC.h5"
     # compile_dataset2(pathToFiles,fileName)
 
 
-    #save_train_stats(fileName)
-    test_random_images(fileName,batchSize=2)
+    # save_train_stats(fileName)
+    # test_random_images(fileName,batchSize=2)
     #save_label_idx_map(fileName)
 

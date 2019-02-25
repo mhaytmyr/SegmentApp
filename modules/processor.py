@@ -74,7 +74,7 @@ class ImageProcessor(Normalizer,Cropper):
         imgNorm = self.pre_process_img(imgBatch)
         #2. pre-process label
         labelZoom = self.pre_process_label(labelBatch)
-
+        
         return imgNorm, labelZoom
 
     def pre_process_label(self,labelInput):
