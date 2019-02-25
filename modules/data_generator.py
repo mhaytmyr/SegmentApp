@@ -1,9 +1,3 @@
-# import numpy as np, sys, pdb
-# import cv2, h5py, dask
-# import dask.array as da
-# import dask
-# import time
-
 #package specific imports
 from modules import *
 
@@ -122,6 +116,7 @@ class DataGenerator(ImageProcessor):
 
             #convert to one-hot encoded
             feature, organ = self.pre_process_img_label(imgBatch,labelBatch)
+            
 
             #augment data
             if augment:
