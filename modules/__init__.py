@@ -1,5 +1,5 @@
 import sys, os, glob
-
+import json
 
 import pdb 
 import time, numpy as np
@@ -18,7 +18,7 @@ config2 = sys.modules['config'].config2
 config3 = sys.modules['config'].config3
 
 # from config import *
-__all__ = ["os","sys","glob","np","da","dask","h5py","pdb","time","cv2","plt","nib","pydicom",
+__all__ = ["os","sys","glob","np","da","dask","h5py","pdb","time","cv2","plt","nib","pydicom","json",
             "to_categorical","config1","config2","config3"]
 
 #for key in sys.modules:

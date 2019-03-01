@@ -13,6 +13,7 @@ from keras.models import model_from_json
 from modules.data_generator import DataGenerator
 from modules.plotter import Plotter
 from modules.fileparser import FeatureLabelReader
+from modules.model1 import SegTHOR
 
 def test_generator(myGen,dataGenerator):
 
@@ -204,7 +205,7 @@ if __name__=='__main__':
 
         
     elif arg=='test':
-        model = load_json_model(config1["modelName"])
+        model = SegTHOR.load_json_model(config1["modelName"])
         plot_prediction(valGen,model,dataGenerator)
         # plot_prediction(trainGen,model,dataGenerator)
 
