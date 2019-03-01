@@ -13,6 +13,7 @@ config1={
     'NUMEPOCHS':50,
     'NUMCLASSES': 6, #5
     'L2PENALTY':0.0001,
+    'LEAKYALPHA':0.3,
     'LEARNRATE':0.0001, 
     'TRAINSIZE':1021,
     'VALSIZE':158,
@@ -22,7 +23,8 @@ config1={
     'H0':512,
     'W0':512,
     'C0':1,
-    'modelName':'1x256x384_MultiClassBatchWeight_3D16_3D32_3D64_3D128_3D256_3D512_1C1024',
+    #'modelName':'1x256x384_MultiClassBatchWeight_3D16_3D32_3D64_3D128_3D256_3D512_1C1024',
+    'modelName':'1x256x384_MergedDataWeighted_3D16_3D32_3D64_3D128_3D256_3D512_1C1024'
     #same model as before but multiclass loss function
     #modelName:"1x256x384_MultiClass_3D16_3D32_3D64_3D128_3D256_3D512_1C1024"
     #same model as before but multiclass loss function

@@ -1,7 +1,6 @@
 from modules import *
 from modules.processor import ImageProcessor
 
-#pdb.set_trace()
 
 def save_train_stats(trainFileName):
 
