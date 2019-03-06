@@ -11,20 +11,22 @@ config1={
     'FILTER7':1024,
     'BATCHSIZE':8,
     'NUMEPOCHS':50,
-    'NUMCLASSES': 6, #5
+    'NUMCLASSES': 6, 
+    # 'NUMCLASSES': 5,
     'L2PENALTY':0.0001,
     'LEAKYALPHA':0.3,
     'LEARNRATE':0.0001, 
-    'TRAINSIZE':1021,
-    'VALSIZE':158,
+    # 'TRAINSIZE':12377,
+    'TRAINSIZE':6396,
+    'VALSIZE':1024,
     'H':384,
     'W':256,
     'C':1,
     'H0':512,
     'W0':512,
     'C0':1,
-    #'modelName':'1x256x384_MultiClassBatchWeight_3D16_3D32_3D64_3D128_3D256_3D512_1C1024',
-    'modelName':'1x256x384_MergedDataWeighted_3D16_3D32_3D64_3D128_3D256_3D512_1C1024'
+    #I changed model architecture in the following run
+    'modelName':'1x256x384_Model1_3D16_3D32_3D64_3D128_3D256_3D512_1C1024'
     #same model as before but multiclass loss function
     #modelName:"1x256x384_MultiClass_3D16_3D32_3D64_3D128_3D256_3D512_1C1024"
     #same model as before but multiclass loss function

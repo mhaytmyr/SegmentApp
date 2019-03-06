@@ -79,7 +79,7 @@ if __name__=="__main__":
     fileName = "TRAIN_SegTHOR.h5"
     # pathToFiles = "../../SegmentationDataSets/SegTHOR/test/"
     # fileName = "TEST_SegTHOR.h5"
-    compile_dataset(pathToFiles,fileName)
+    #compile_dataset(pathToFiles,fileName)
 
     #LCTSC files
     #test path in which feature label are seperated
@@ -87,8 +87,8 @@ if __name__=="__main__":
     # fileName = "TRAIN_LCTSC.h5"
     # compile_dataset2(pathToFiles,fileName)
 
-
-    # save_train_stats(fileName)
+    fileName = "TRAIN_MERGED.h5"
+    save_train_stats(fileName)
     # test_random_images(fileName,batchSize=2)
     #save_label_idx_map(fileName)
 

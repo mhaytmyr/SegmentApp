@@ -103,11 +103,52 @@ def fuse_labels(valGen,model,dataGenerator,outFile="TRAIN_MERGED.h5"):
         #print("Processed ",imgNum)
         imgNum += imgBatch.shape[0]
 
+def merged_datasets(valGen,model,dataGenerator,outFile="TRAIN_MERGED.h5"):
+    '''
+    Method used to merge SegTHOR and LCTSC dataset
+        SegTHOR has {'esophagus':1,'heart':2,'trachea':3,'aorta'}
+        LCTSC has {'esophagus':1, 'heart':2, 'spinal cord':3 ,'L-R Lung':4,5}
+    '''
+
+    #create instance of Plotter class
+    plotter = Plotter()
+    imgNum = 0
+    while imgNum<5981: #total number of slices in LCTSC file
+        imgBatch, label = next(valGen)
+        
+        imgOriginal = dataGenerator.images
+        labelOriginal = dataGenerator.labels
+        
+        #I am assigning different value to spinal cord
+        #labelOriginal[labelOriginal==3] = 6
+        labelOriginal[labelOriginal==4] = 0
+        labelOriginal[labelOriginal==5] = 0
+        labelOriginal[labelOriginal==3] = 0
+
+        #look for slices that has non-zero label
+        zSlices = np.array([np.max(labelOriginal[idx,...])>0 for idx in range(imgBatch.shape[0])],dtype=np.bool)
+
+        print(imgOriginal.shape)
+        
+        imgSave = imgOriginal[zSlices,...]
+        labelSave = labelOriginal[zSlices,...]
+        print(imgSave.shape)
+        if imgSave.shape[0]>0:
+            print("Saving ",imgNum)
+            FeatureLabelReader.save_image_mask(imgSave,labelSave,fileName=outFile)
+
+        #k = plotter.plot_slice_label(imgOriginal,labelOriginal)
+        #if k==27: break
+
+        imgNum += imgBatch.shape[0]
+
+from scipy.misc import imsave
 def plot_prediction(valGen,model,dataGenerator):
  
     #create instance of Plotter class
     plotter = Plotter()
 
+    imgNum = 0
     while imgNum<config1["VALSIZE"]:
         imgBatch, label = next(valGen)
         labelBatch = label["organ_output"]
@@ -127,7 +168,11 @@ def plot_prediction(valGen,model,dataGenerator):
 
         k = plotter.plot_label_prediction(imgBatchDeNorm,labelTrue,labelPred)
         if k==27: break
-
+        if k==ord('s'):
+            imsave("true.png",labelTrue[0].astype('uint8'))
+            imsave("pred.png",labelPred[0].astype('uint8'))
+        imgNum += imgBatch.shape[0]
+        
         #ax = overlay_contours_plot(pred_organ,true_organ,image,imgNum,ax); 
         #overlay_contours_save(pred_organ,true_organ,image,imgNum);         
 
@@ -137,17 +182,6 @@ def get_normalization_param(trainFile):
         variance = fp["variance"][0]
     return means, variance 
 
-
-def load_json_model(modelName):
-    filePath = './checkpoint/'+modelName+".json";
-    fileWeight = './checkpoint/'+modelName+"_weights.h5"
-
-    with open(filePath,'r') as fp:
-        json_data = fp.read();
-    model = model_from_json(json_data)
-    model.load_weights(fileWeight)
-
-    return model
 
 import pickle
 if __name__=='__main__':
@@ -162,11 +196,12 @@ if __name__=='__main__':
    
     #define train file name
     trainFile = "TRAIN_SegTHOR.h5"
-    testFile = "TRAIN_LCTSC.h5"
-    # testFile = "TEST_SegTHOR.h5"
+    # trainFile = "TRAIN_MERGED.h5"
+    # testFile = "TRAIN_LCTSC.h5"
+    testFile = "TEST_SegTHOR.h5"
 
     #now get normalization parameters
-    imgMean, imgStd = get_normalization_param("TRAIN_SegTHOR_STAT.h5")
+    imgMean, imgStd = get_normalization_param(trainFile.replace(".h5","_STAT.h5"))
 
     #create data generator
     dataGenerator = DataGenerator(normalize={"means":imgMean,"vars":imgStd})
@@ -179,13 +214,14 @@ if __name__=='__main__':
     #create test data generator
     valGen = dataGenerator.generate_data(testFile,
                            batchSize=2,
-                           #batchSize=config1["BATCHSIZE"],
+                        #    batchSize=config1["BATCHSIZE"],
                            augment=False,shuffle=False)
      
 
     arg = sys.argv[1]
     if arg=='train':
-        hist = train_model(trainGen, valGen, config2["STEPPEREPOCHS"], config1["NUMEPOCHS"], config2["VALSTEPS"]);
+        myModel = SegTHOR(numLabels=config1["NUMCLASSES"])
+        hist = myModel.train_on_generator(trainGen,valGen)
 
         with open('./log/'+config1["modelName"]+".log", 'wb') as fp:
             pickle.dump(hist.history, fp)
@@ -193,12 +229,12 @@ if __name__=='__main__':
 
         fig, axes = plt.subplots(ncols=2,nrows=1)
         ax = axes.ravel();
-        ax[0].plot(history['loss'],'r*',history['val_loss'],'g^');
-        ax[0].legend(labels=["Train loss","Val Loss"],loc="best");
+        ax[0].plot(history['loss'],'r*',history['val_loss'],'g^')
+        ax[0].legend(labels=["Train loss","Val Loss"],loc="best")
         ax[0].set_title("Cross entropy loss vs epochs")        
-        ax[0].set_xlabel("# of epochs");        
-        ax[1].plot(history["dice_1"],"r*",history["dice_2"],"g^",history["dice_3"],"b>",history["dice_4"],"k<");
-        ax[1].legend(labels=["Bladder","Rectum","Femoral Head","CTV","Sigmoid"]);
+        ax[0].set_xlabel("# of epochs")
+        ax[1].plot(history["dice_1"],"r*",history["dice_2"],"g^",history["dice_3"],"b>",history["dice_4"],"k<")
+        ax[1].legend(labels=["Esophagus","Heart","Trachea","aorta","Spinal Cord"])
         ax[1].set_title("Dice coefficients vs epochs")
         ax[1].set_xlabel("# of epochs");
         fig.savefig("./log/"+config1["modelName"]+".jpg")
@@ -211,7 +247,7 @@ if __name__=='__main__':
 
     elif arg=='submit':
         #load model
-        model = load_json_model(config1["modelName"])
+        model = SegTHOR.load_json_model(config1["modelName"])
         #creat instance of SubmitPrediction
         predictor = SubmitPrediction(
                             pathToImages='../../SegmentationDataSets/SegTHOR/',
@@ -226,5 +262,6 @@ if __name__=='__main__':
         # test_generator(trainGen,dataGenerator)
 
     elif arg=='fuse':
-        model = load_json_model(config1["modelName"])
-        fuse_labels(valGen,model,dataGenerator)
+        model = SegTHOR.load_json_model(config1["modelName"])
+        merged_datasets(valGen,model,dataGenerator,outFile="TRAIN_MERGED.h5")
+        #fuse_labels(valGen,model,dataGenerator)
