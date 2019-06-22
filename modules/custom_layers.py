@@ -7,6 +7,42 @@ from keras.callbacks import Callback
 from keras.utils import conv_utils
 from keras.engine import InputSpec
 
+class BackPropMasker(Layer):
+    def __init__(self, labels, **kwargs):
+        super(BackPropMasker, self).__init__(**kwargs)
+        
+        # self.data_format = conv_utils.normalize_data_format(data_format)
+        # self.input_spec = InputSpec(ndim=4)
+        # if output_size:
+        #     self.output_size = conv_utils.normalize_tuple(output_size, 2, 'output_size')
+        #     self.upsampling = None
+        # else:
+        #     self.output_size = None
+        #     self.upsampling = conv_utils.normalize_tuple(upsampling, 2, 'upsampling')
+
+    def compute_output_shape(self, input_shape):
+        # if self.upsampling:
+        #     height = self.upsampling[0] * input_shape[1] if input_shape[1] is not None else None
+        #     width = self.upsampling[1] * input_shape[2] if input_shape[2] is not None else None
+        # else:
+        #     height = self.output_size[0]
+        #     width = self.output_size[1]
+
+        # return (input_shape[0],height,width,input_shape[3])
+        pass
+
+    def call(self, inputs):
+        #stop gradient of the tensor if label doesn't exist
+        pass
+
+
+    def get_config(self):
+        config = {'upsampling': self.upsampling,
+                'output_size': self.output_size,
+                'data_format': self.data_format}
+
+        base_config = super(BackPropMasker, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
 class Metrics(Callback):
     def __init__(self,generator, steps, batch):

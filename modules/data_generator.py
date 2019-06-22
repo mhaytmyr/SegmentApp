@@ -11,8 +11,9 @@ from modules.processor import ImageProcessor
 
 
 class DataGenerator(ImageProcessor):
-    def __init__(self,normalize=None):
+    def __init__(self,normalize=None,crop=True):
         ImageProcessor.__init__(self,normalize)
+        self.crop = crop
         self.augments = []
         
     def load_file(self,inputFile):
@@ -115,7 +116,7 @@ class DataGenerator(ImageProcessor):
                     labelBatch = hdfFile["labels"][start:end,...]
 
             #convert to one-hot encoded
-            feature, organ = self.pre_process_img_label(imgBatch,labelBatch)
+            feature, organ = self.pre_process_img_label(imgBatch,labelBatch,crop=self.crop)
             
 
             #augment data
@@ -125,69 +126,63 @@ class DataGenerator(ImageProcessor):
             #create generator
             yield (self.img_to_tensor(feature),{'organ_output':self.img_to_tensor(organ)})
 
-
-    def data_generator_stratified(self,hdfFileName,batchSize=50,augment=True,normalize=None):
+    def data_generator_discriminator(self,inputFile=None,batchSize=16,shuffle=False, create_fake=True):
         '''
-        Method to generate data with balanced class in each batch
-        TODO: fix this
+        Method to generate fake data by randomly merging datasets
         '''
+        #get file
+        hdfFile = self.load_file(inputFile)
+        print(hdfFile["features"].shape, hdfFile["labels"].shape)
 
-        #create place holder for image and label batch
-        img_batch = np.zeros((batchSize,config1["H0"],config1["W0"]),dtype=np.float32)
-        label_batch = np.zeros((batchSize,config1["H0"],config1["W0"]),dtype=np.float32)
-    
-        #get pointer to features and labels
-        hdfFile = h5py.File(hdfFileName,"r")
-        features = hdfFile["features"]        
-        labels = hdfFile["labels"]
+        #initialize pointer
+        idx,n = 0, hdfFile["features"].shape[0]
+        #get only first 10 images
+        idx,n = 120,124
+        indices = np.arange(n-idx)+idx
 
-        #create dask array for efficienct access    
-        daskFeatures = dask.array.from_array(features,chunks=(4,config1["H0"],config1["W0"]))
-        daskLabels = dask.array.from_array(labels,chunks=(4,config1["H0"],config1["W0"]))
+        if shuffle:
+            np.random.shuffle(indices)
 
-        #create queue for keys
-        label_queue = Queue()
-            
-        #create dictionary to store queue indices
-        label_idx_map = {}
-        #(no need to shuffle data?), add each index to queue
-        with h5py.File(hdfFileName.replace(".h5","_IDX_MAP.h5"),"r") as fp:
-            for key in fp.keys():
-                label_queue.put(key)
-                label_idx_map[key] = Queue()
-                for item in fp[key]:
-                    label_idx_map[key].put(item)
-
-        #yield batches
         while True:
-            #start = time.time()
-            for n in range(batchSize):
-                #get key from keys queue
-                key = label_queue.get()
-                #get corresponding index
-                index = label_idx_map[key].get();            
-                #append them to img_batch and label_batch
-                img_batch[n] = daskFeatures[index].compute()
-                label_batch[n] = daskLabels[index].compute()
+            start = idx
+            end = (idx+batchSize)
+        
+            if idx>=n:
+                #shuffle indices after each epoch
+                if shuffle: 
+                    np.random.shuffle(indices)
 
-                #circulate queue
-                label_queue.put(key)
-                label_idx_map[key].put(index)
+                slice = np.arange(start,end)
+                subIndex = sorted(indices[slice%n])
+                idx = end%n
+                imgBatch = hdfFile["features"][subIndex,...]
+                
+            else:
+                #increment counter
+                idx+=batchSize
 
-            #debug queue
-            #print("{0:.3f} msec took to generate {1} batch".format((time.time()-start)*1000,batchSize))
-            #print(label_idx_map["2"].queue);
+                if shuffle:
+                    subIndex = sorted(indices[start:end])
+                    imgBatch = hdfFile["features"][subIndex,...]
+                else:
+                    imgBatch = hdfFile["features"][start:end,...]
 
-            #apply pre-processing operations
-            feature, organ = self.pre_process_img_label(img_batch,label_batch)
+            #convert to one-hot encoded
+            feature = self.pre_process_img(imgBatch,crop=self.crop)
+            organ = np.zeros(feature.shape[0])
 
-            #augment data
-            if augment:
-                feature,organ = augment_data(feature,organ)
+            #create fake images for discriminator training
+            if create_fake:
+                #now distort half of images to create fake dataset
+                for index in range(feature.shape[0]//2):
+                    tmp = feature[index,...]
+                    distorted = elastic_transform_2d(tmp, tmp.shape[1] * 3, tmp.shape[1] * 0.08, tmp.shape[1] * 0.08)
+                    #now put images back
+                    feature[index,...] = distorted
+                    organ[index] = 1
 
-            #yield data 
-            #yield (feature[...,np.newaxis], {'organ_output':organ})
-            yield (self.img_to_tensor(feature),{'organ_output':self.img_to_tensor(organ)})
+            #create generator
+            yield (self.img_to_tensor(feature),{'out':organ})
 
 # Define function to draw a grid
 def draw_grid(im, grid_size):
@@ -196,6 +191,25 @@ def draw_grid(im, grid_size):
         cv2.line(im, (i, 0), (i, im.shape[0]), color=(1,))
     for j in range(0, im.shape[0], grid_size):
         cv2.line(im, (0, j), (im.shape[1], j), color=(1,))
+
+def elastic_transform_2d(image, alpha, sigma, alpha_affine, random_state=None):
+    """
+     Based on https://gist.github.com/erniejunior/601cdf56d2b424757de5
+    """
+    if random_state is None:
+        random_state = np.random.RandomState(None)
+
+    shape = image.shape
+    shape_size = shape[:2]
+
+    dx = gaussian_filter((random_state.rand(*shape) * 2 - 1), sigma) * alpha
+    dy = gaussian_filter((random_state.rand(*shape) * 2 - 1), sigma) * alpha
+
+    x, y = np.meshgrid(np.arange(shape[1]), np.arange(shape[0]))
+    indices = np.reshape(y+dy, (-1, 1)), np.reshape(x+dx, (-1, 1))
+
+    return map_coordinates(image, indices, order=1, mode='reflect').reshape(shape)
+
 
 
 def elastic_transform(image, alpha, sigma, alpha_affine, random_state=None):
